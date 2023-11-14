@@ -6,7 +6,7 @@ from skillNer.general_params import SKILL_DB
 from skillNer.skill_extractor_class import SkillExtractor
 import pickle
 
-nlp = spacy.load("en_core_web_lg")
+nlp = spacy.load("en_core_web_sm")
 
 def extract_skills(text, tresh=0.95):
     
@@ -98,7 +98,8 @@ def extract_experience(text):
         txt = ent.text
         label = ent.label_
         if (label in ner_categories) and (txt.lower() in company_master.lower()):
-            entities.append({txt: label})
+            if txt not in [list(d.keys())[0] for d in entities]:
+                entities.append({txt: label})
 
     # # Q&A
     # with open('models/qa_model.pickle', 'rb') as file:
@@ -107,21 +108,20 @@ def extract_experience(text):
     # list_of_companies_question = "What are the list of companies that a candidate have worked for since graduation?"
     # answer = qa_model(list_of_companies_question, text)
 
-    # return answer
+    # entities.append({"answer", answer})
     
     return entities
 
-    
 
 def get_output_dict(text):
 
     output = dict()
+    n_alphabets = 100
 
-    # skill
-    output['skills'] = extract_skills(text)
+    # skill -- long process
+    # output['skills'] = extract_skills(text[n_alphabets:])
 
     # contact
-    n_alphabets = 100
     first_section = text[:n_alphabets]
     output['contact'] = dict()
     output['contact']['email'] = extract_email(first_section)
@@ -133,17 +133,10 @@ def get_output_dict(text):
     # metadata
     # personal
 
-    # # education
-    # output['education'] = extract_education(text)
+    # education
+    output['education'] = extract_education(text)
 
     # experience
-
-    output['experience'] = extract_experience(text[:100])
-
-    # ner_categories = ["ORG", "PERSON"]
-
-    # for ent in doc.ents:
-    #     if ent.label_ in ner_categories:
-    #         output[ent.text] = ent.label_
+    output['experience'] = extract_experience(text)
     
     return output

@@ -1,8 +1,9 @@
-from flask import Flask, jsonify
+#!/usr/bin/env python3
+
 import json
 import numpy as np
-from text_extraction import pdf_to_text #, text_to_sequence
-#from sentence_classification import classify_sequence
+from flask import Flask, jsonify, request
+from text_extraction import pdf_to_text
 from information_extraction import get_output_dict
 
 app = Flask(__name__)
@@ -20,34 +21,25 @@ class NpEncoder(json.JSONEncoder):
 
 @app.route("/")
 def home_page():
-    return jsonify({"msg": "Use endpoint 'parse-resume'"})
+    return jsonify({"Availables endpoints": [{
+        "POST": "/parse-resume?file_url=<your-file>"
+    }]})
 
-@app.route("/parse-resume")
+@app.route("/parse-resume", methods=["POST"])
 def parse_resume():
-    txt = pdf_to_text()
 
-    # full text search
+    # receive URL of pdf file
+    url = request.args.get('file_url')
+    
+    # pdf to text
+    txt = pdf_to_text(url)
+
+    # extract information from text
     output = get_output_dict(txt)
     serializable_output = json.dumps(output, cls=NpEncoder)
     output_dict = json.loads(serializable_output)
 
-    # sequences = text_to_sequence(txt)
-    # predictions = []
-    # for seq in sequences[:5]:
-    #     # extract 
-
-    #     # classify
-    #     pred = classify_sequence(seq)
-    #     predictions.append(
-    #         {
-    #             'seq': pred['sequence'], 
-    #             'pred': pred['labels'][0], 
-    #             'score': pred['scores'][0],
-    #             'entities': get_entities_dict(seq)
-    #         }
-    #     )
-    return jsonify(output_dict)
+    return jsonify(output_dict), 200
 
 if __name__ == "__main__":
-    # remove debug=True in production
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    app.run(host="0.0.0.0", port=8080)
