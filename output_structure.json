@@ -1,0 +1,133 @@
+{
+    "skills": [
+      "Community Service",
+      "Concord",
+      "FedEx",
+      "Hard Labor",
+      "Leadership",
+      "Textbooks",
+      "Toys"
+    ],
+    "contact": {
+      "email": [{ "value": "xxx@gmail.com" }],
+      "phone": [{ "type": "Telephone", "value": "4204208484" }],
+      "address": [],
+      "website": []
+    },
+    "summary": {
+      "benefits": "",
+      "objective": "",
+      "description": "",
+      "notice_period": "",
+      "current_salary": ""
+    },
+    "metadata": {
+      "job_pk": 463152,
+      "remark": "Parsing Complete",
+      "status": "succeeded",
+      "resume_pk": 15801024,
+      "candidate_pk": 21380189,
+      "language_code": "en",
+      "language_confidence": 0.9999951854043442
+    },
+    "personal": {
+      "gender": "",
+      "full_name": "Hidden",
+      "birthplace": "",
+      "first_name": "Hidden",
+      "family_name": "Hidden",
+      "middle_name": "Hidden",
+      "nationality": [],
+      "picture_url": null,
+      "date_of_birth": "",
+      "marital_status": "",
+      "picture_extension": null
+    },
+    "education": [
+      {
+        "city": "",
+        "school": "State University",
+        "country": "",
+        "end_date": "2024-5",
+        "start_date": "-",
+        "degree_name": "",
+        "description": "",
+        "country_code": "NC",
+        "degree_major": "",
+        "custom_sections": []
+      },
+      {
+        "city": "",
+        "school": "Central Piedmont Community College",
+        "country": "",
+        "end_date": "2021-12",
+        "start_date": "2020-8",
+        "degree_name": "",
+        "description": "North Carolina Agricultural and Technical State University, Greensboro, NC\nMay 2024\nGPA: 3.4\nCentral Piedmont Community College, Charlotte NC\nAugust 2020 - December 2021\nGPA: 3.3\nCourse Careers, Remote December 2022 - January 2023\nGPA: 3.3\nCourse Careers, Remote December 2022 - January 2023",
+        "country_code": "NC",
+        "degree_major": "",
+        "custom_sections": []
+      }
+    ],
+    "languages": [{ "code": "en", "name": "English", "description": "" }],
+    "experience": [
+      {
+        "city": "",
+        "title": "NCAT ASEC",
+        "country": "",
+        "employer": "Hickman Property Holdings LLC",
+        "end_date": "2023-",
+        "start_date": "2022-2",
+        "description": "● A group of like-minded individuals who also are involved on and off campus community service activities",
+        "country_code": "",
+        "custom_sections": []
+      },
+      {
+        "city": "",
+        "title": "Founder",
+        "country": "",
+        "employer": "Hickman Property Holdings LLC",
+        "end_date": "2023-",
+        "start_date": "2022-9",
+        "description": "● I have 6 employees that I manage and work within my company.",
+        "country_code": "",
+        "custom_sections": []
+      },
+      {
+        "city": "",
+        "title": "Merchandiser",
+        "country": "",
+        "employer": "Fedex",
+        "end_date": "2022-",
+        "start_date": "2021-",
+        "description": "● Provided great customer service by being knowledgeable about all the consu(...)",
+        "country_code": "NC",
+        "custom_sections": []
+      },
+      {
+        "city": "",
+        "title": "Retail Sales Specialist",
+        "country": "",
+        "employer": "Fedex",
+        "end_date": "2022-",
+        "start_date": "2022-",
+        "description": "● Provide the Best Customer Service\nProvide the best sales experience(...)",
+        "country_code": "",
+        "custom_sections": []
+      },
+      {
+        "city": "",
+        "title": "Team Lead",
+        "country": "",
+        "employer": "Burger King",
+        "end_date": "2020-",
+        "start_date": "2018-",
+        "description": "● Utilize leadership skills to properly train new employees",
+        "country_code": "NC",
+        "custom_sections": []
+      }
+    ],
+    "achievements": {},
+    "certifications": {},
+    "qualifications": {}
+}

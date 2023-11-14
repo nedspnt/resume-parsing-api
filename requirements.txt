@@ -1,0 +1,11 @@
+Flask
+tensorflow
+transformers
+tika
+spacy
+pdfminer.six
+skillNer
+IPython
+flair
+torch
+docx2txt
