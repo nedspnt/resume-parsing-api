@@ -1,18 +1,44 @@
 # resume-parsing-api
 
-Resume Parsing API receives a pdf as an input and returns an extracted information in JSON format
+Resume Parsing API receives a URL for pdf file as an input and returns an extracted information in JSON format.
 
-### Usage
+## Usage
 Clone this repository and then run it locally with Docker
 ```
 docker build  -t resume-parsing-image:latest .
-docker run -p 5002:5000 resume-parsing-image:latest 
+docker run -p 5000:5000 resume-parsing-image:latest 
 ```
-Endpoint (can use POSTMAN to test)
+URL
 ```
-POST localhost:5002?file_path=<your_file_path>
+https://localhost:5000
 ```
-Note that in this version the API does not except real input since it requires either UI to upload file, or a cloud location where users can upload file. `file_path` argument is simply a mockup to demonstrate idea of how file path can be processed further.
+
+Endpoint
+```
+POST /parse-resume
+```
+Parameters
+```
+url=https://your-online-pdf-file.pdf
+
+OR
+
+file=your-local-file-in-data-folder.pdf
+```
+You can find a sample resume hosted online using the term search term `"filetype:pdf mockup resume"`. Here are some of the samples
+```
+https://uploads-ssl.webflow.com/5ddae92de8923593f273a7a6/5df41806a58b621680c6a2a1_Abdul%20Rafay%20%E2%80%93%20Resume.pdf
+```
+Or you can test with an internal file that is already uploaded into the project directory under `data/` folder. Currently I have `Ned_Jamta_CV_202305.pdf`. To test new file, you need to put a file into `data/` folder, and rebuild Docker image, and rerun.
+
+Sample usage
+```
+POST https://localhost:5000/parse-resume?file=Ned_Jamta_CV_202305.pdf
+```
+```
+POST https://localhost:5000/parse-resume?url=https://uploads-ssl.webflow.com/5ddae92de8923593f273a7a6/5df41806a58b621680c6a2a1_Abdul%20Rafay%20%E2%80%93%20Resume.pdf
+```
+
 
 Output format in JSON in case return code 200
 
@@ -27,9 +53,9 @@ Output format in JSON in case return code 200
     ...
 }
 ```
+The output structure is constructed based on sample output in `data/output_sample.json`.
 
-
-### Goals
+## Goals
 - Create highly accurate resume parsing
 - Extensibility to new version for new languages
 - Handle loads of thousands of resume parsing request per second
@@ -46,7 +72,7 @@ Making it work means:
 Ability to handle load and response quickly will be based on 
 (1) Lean code (2) System design. The code for this first version is far from being lean and optimal, however we can discuss system design and how to scale this service with tools such as Kubernetes.
 
-### About accuracy
+## About accuracy
 To quantify accuracy metric, I suggest we use a custom metric as follows:
 ```
 accuracy = weights * LevensteinRatio(predictions, labels)
@@ -61,8 +87,30 @@ However, this also requires labeled data.
 
 The final accuracy can be a function of multiple metric, for example weighted average. Measuring accuracy helps us improve over time.
 
-### Extraction Strategy
+## Information Extraction Strategies
 In order to achieve the goal, which is to create API that response within 4 seconds, we need to avoid excessively sophisicated method that yield a little better result but consumes a lot more computational resources.
+
+**Strategy 1 : <br>
+To split texts into sections, we don't need NLP models, we can use simple text spliting.**
+
+Avoid going through all the strings for all tasks is the first priority for information extraction. We can shortlist important keywords for each section, for example:
+```
+["experience", "education", "skill", ...]
+```
+then we split full text by each keyword and find the length from the first string until this word as its value in a dictionary.
+```
+{"experience": 120, "education": 300, "skill":500, ...}
+```
+Here we know immediately that "experience section" is between the string index 120 and string index 300. Education section is between string index 300 to 500, and so on.
+
+Refer to the function `detect_sections()` in `information_extraction.py` for an implementation details.
+
+I also apply this to split between multiple experiences in experience section.
+
+........
+
+**Strategy 2 : <br>
+Use REGEX whenever possible and avoid large NLP models**
 
 I have experimented with multiple NLP models from huggingface, but most of them are large and slow.
 
@@ -101,33 +149,109 @@ def extract_phone_numbers(text):
     return phone_numbers_list_of_dict
 ```
 
+## Extraction of Each Component
+
 
 ### PDF File to Text
 Conversion from PDF file to text is handled by the function pdf_to_text that wrap around `pdfminder` library, this function is in the file `text_extraction.py`.
 
-Input to pdf_to_text function is currently only a single pdf file stored in memory. Ideally, this should be stored externally, for example on-cloud, and we use URL as an input to the API.
+### URL to Text
+
+I simply use Python's requests and read file with `PyPDF2` library. The function `pdf_url_to_text()` will read file and store as plain text. For each request, there will be no file saved, since it's going consume memory.
 
 ### Text to Insights
 Extracting information from raw text is non-trival task. As there are countless variation of resume structure, choice of word, not to mention the content in the resume it self.
 
-- SKILLS: 
+___
 
-Skill extraction is done by a function `extract_skills` that wraps around a Name Entity Recognition package called `SkillNer`. We can specify the threshould as a criteria to select only relevant skills.
+*PERSONAL*
+
+- FULL NAME
+
+With text segmentation we are able to get the text in contact section. Which is define as the first string until the start of the next section, which can be anything. The code is generic enough to handle the different section sequence.
+
+Then we use a simple Name Entity Recognition provided by `Spacy` to detect an entity labeled as person.
+
+see `extract_full_name()` function for more details.
+
+- FIRST NAME and FAMILY NAME
+
+I simply use string split to split a full name with white space `" "`. The first part is defined as first name, the later part is defined as family name.
+
+Limitation: Middle name is not covered in this version.
+
+___
+
+*CONTACT* <br>
+
+- EMAIL
+
+I tried a little different technique by using tokenized word, and find a word pattern that matches email structure through the `document.like_email` in Spacy. However, I did not loop over the whole resume. The given text is already selected to be contact section only through the segmentation strategy.
+
+- PHONE
+
+REGEX is appropriate tool and it is able to detect multiple patterns of mobile phone numbers very well. Such as:
+```
+"+66 90 123 4567", 
+"(66) 991234567", 
+"0951234567"
+...
+```
+___
+
+*SKILLS* <br>
+
+I have tried a sophisicated Name Entity Recognition package. However, it's time and resouce consuming.
+
+Therefore with a text segmentation strategy in the first step, we are able to retrieve good quality of subset of text related to skill. This will be passed to the function `extract_skills()` that plainly split given text by `","`.
+
+The sophisicated skill extraction is created in a function `extract_skills_comprehensive` that wraps around a Name Entity Recognition package called `SkillNer`. We can specify the threshould as a criteria to select only relevant skills.
 
 For example the model might detect the word "Application" as a skill with confident score 0.5, and detect the word "Machine Learning" with a confident score 0.9. Without the threshold, there would be too many words detected as candidate skills.
 
-- CONTACT:
+___
+*EXPERIENCE* <br>
 
-For email, I tried a little different technique by using tokenized word, and find a word pattern that matches email structure through the `document.like_email` in Spacy. However, I did not loop over the whole resume. The variable `n_alphabet` in the function `get_output_dict` is created to limit the number of alphabets go in to the prediction. Here I believe email would likely be in the first 100 words. So I scan the first 100 words for email. In actual work, we might need more data to be decisive about this threshold, or we can use REGEX.
+I split experience text section by starting date. Each starting date represents one experience element, i.e. one job. So that we can represent experience data in the following format
+```
+[
+    {"start_date": "...", "company": "...", ..},
+    {"start_date": "...", "company": "...", ..},
+    ...
+]
 
-For phone, as mentioned earlier, I tried REGEX and it is able to detect multiple patterns of mobile phone numbers very well. Such as "+66 90 123 4567", "(66) 991234567", or "0951234567". And we only search for the first n words specified by `n_alphabet` as well.
+```
+
+I call each element in the experience list above as `an experience element`.
+
+See `extract_experience()` function, I loop through text and define the first date detected in an experience section as a start date. It is important that we are able to detect end date, since it should be part of the same experience element as the previous start date.
+
+Once we did that, we can identify a string section related to each experience element.
+
+For each string section, we can try to extract information such as company, title, description, and etc. However, with the current model, I can only extract description which is defined by the string section itself.
+
+___
+*EDUCATION* <br>
+
+I extracted university name using REGEX pattern. 
+```
+university_pattern = re.compile(r'''
+        \s[^0-9\s]*\sUniversity\s       # <...> University
+        |                               # OR
+        \sUniversity\sof\s[^0-9\s]*\s   # University of <...>
+    ''', re.IGNORECASE | re.DOTALL | re.MULTILINE | re.VERBOSE)
+```
+The limitation of the code above is that it only detects Univeristy and not the terms Collage or School. More generic pattern needs to be created.
+
+___
 
 The rest of the extraction can be done with either of the 2 strategies as mentioned (1) Regex (2) text classfication, or the following other strategies:
 
 - Question Answering model: put resume as a context, and ask model the question. For example, "what is the most recent company the candidate with working at?"
-- Text block segmentation: this can be done either through Computer Vision perspective (density of text) or NLP perspective (text segmentation). However, these types of strategies require label data.
+- Text block segmentation: this can be done either through Computer Vision perspective (density of text) or NLP perspective (text segmentation).
+- Custom model using labeled data
 
-## Model Storage and Deployment Strategy
+## Deployment Strategy
 I want to make sure that the model downloading script is done at build time, not during the inference time.
 
 So I created `download_models.py` and run instructed it to run in Dockerfile before running the main file.
@@ -148,14 +272,14 @@ Cloud Run is a pay-as-you-go serverless solution, suitable for a small experimen
 
 Accepting high through-put like thousands of resume per second requires horizontal node scaling.
 
-While increasing response speed requires improving computation capacity per node.
+While increasing response speed requires improving computation capacity.
 
 
 ## Room for improvement
-- Store resume pdf files on cloud, and use file URL as an input to the resume parsing API.
-- Collect resume data and label those data for model training
+- Collect resume data and label those data for custom model training
 - Work on the rest of the extractable information 
 - Unit test
-- Endpoints structure and return codes
+- Better endpoints structure and return codes
 - Cleaner, and more optimized coding, or OOP style
+- Compute accuracy from sample data
 
