@@ -1,10 +1,34 @@
-import re
+import requests
 from pdfminer.high_level import extract_text
 
-def pdf_to_text(path_to_file):
+import PyPDF2
+import io
 
-    # purposefully hardcoded for this experiment
-    path_to_file='data/Ned_Jamta_CV_202305.pdf'
+def pdf_url_to_text(url):
+
+    res = requests.get(url)
+    if res.status_code == 200:
+        f = io.BytesIO(res.content)
+        reader = PyPDF2.PdfReader(f)
+        pages = reader.pages
+        text = "".join([page.extract_text() for page in pages])
+
+        return text
+    else:
+        return None
+
+# def url_to_pdf(url):
+
+#     res = requests.get(url)
+#     if res.status_code == 200:
+#         with open('data/input.pdf', 'wb') as file:
+#             file.write(res.content)
+
+#     return None
+
+def pdf_file_to_text(file_name):
+
+    path_to_file = f'data/{file_name}'
 
     return extract_text(path_to_file)
 

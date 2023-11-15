@@ -3,6 +3,7 @@ tensorflow
 transformers
 spacy
 pdfminer.six
-skillNer
-IPython
+# skillNer
+# IPython
 twine
+PyPDF2

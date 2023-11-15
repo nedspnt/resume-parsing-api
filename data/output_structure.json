@@ -1,0 +1,92 @@
+{
+  "skills": [],
+  "contact": {
+    "email": [{ "value": "" }],
+    "phone": [{ "type": "", "value": "" }],
+    "address": [],
+    "website": []
+  },
+  "summary": {
+    "benefits": "",
+    "objective": "",
+    "description": "",
+    "notice_period": "",
+    "current_salary": ""
+  },
+  "metadata": {
+    "job_pk": null,
+    "remark": "Parsing Complete",
+    "status": "succeeded",
+    "resume_pk": null,
+    "candidate_pk": null,
+    "language_code": "en",
+    "language_confidence": null
+  },
+  "personal": {
+    "gender": "",
+    "full_name": "",
+    "birthplace": "",
+    "first_name": "",
+    "family_name": "",
+    "middle_name": "",
+    "nationality": [],
+    "picture_url": null,
+    "date_of_birth": "",
+    "marital_status": "",
+    "picture_extension": null
+  },
+  "education": [
+    {
+      "city": "",
+      "school": "",
+      "country": "",
+      "end_date": "",
+      "start_date": "",
+      "degree_name": "",
+      "description": "",
+      "country_code": "",
+      "degree_major": "",
+      "custom_sections": []
+    },
+    {
+      "city": "",
+      "school": "",
+      "country": "",
+      "end_date": "",
+      "start_date": "",
+      "degree_name": "",
+      "description": "",
+      "country_code": "",
+      "degree_major": "",
+      "custom_sections": []
+    }
+  ],
+  "languages": [{ "code": "en", "name": "English", "description": "" }],
+  "experience": [
+    {
+      "city": "",
+      "title": "",
+      "country": "",
+      "employer": "",
+      "end_date": "",
+      "start_date": "",
+      "description": "",
+      "country_code": "",
+      "custom_sections": []
+    },
+    {
+      "city": "",
+      "title": "",
+      "country": "",
+      "employer": "",
+      "end_date": "",
+      "start_date": "",
+      "description": "",
+      "country_code": "",
+      "custom_sections": []
+    }
+  ],
+  "achievements": {},
+  "certifications": {},
+  "qualifications": {}
+}
