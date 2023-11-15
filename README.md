@@ -2,6 +2,21 @@
 
 Resume Parsing API receives a URL for pdf file as an input and returns an extracted information in JSON format.
 
+*Folder Structure*
+```
+api_service.py              # main file for API
+resume_parser.py            # resume parsing script
+utils/      
+    download_models.py      # download model at build
+    text_extraction.py      # handle pdf to text
+models/                     # store models
+data/
+    Ned_Jamta_CV_202305.pdf # sample data
+requirements.txt            # dependencies
+Dockerfile                  # containerization
+```
+
+
 ## Usage
 Clone this repository and then run it locally with Docker
 ```
@@ -39,7 +54,6 @@ POST https://localhost:5000/parse-resume?file=Ned_Jamta_CV_202305.pdf
 POST https://localhost:5000/parse-resume?url=https://uploads-ssl.webflow.com/5ddae92de8923593f273a7a6/5df41806a58b621680c6a2a1_Abdul%20Rafay%20%E2%80%93%20Resume.pdf
 ```
 
-
 Output format in JSON in case return code 200
 
 ```
@@ -55,22 +69,40 @@ Output format in JSON in case return code 200
 ```
 The output structure is constructed based on sample output in `data/output_sample.json`.
 
+
 ## Goals
 - Create highly accurate resume parsing
 - Extensibility to new version for new languages
 - Handle loads of thousands of resume parsing request per second
 - Return the response in 4 seconds
 
-### Phase 1 Objective
-Objective of this project is to create the MVP as quickly as possible, and focus less on the accuracy. The priority would be (1) Make it work (2) Make it right (3) Make it fast, respectively.
+### Milestones
+Objective of this phase is to create an MVP as quickly as possible, and focus less on the accuracy. The priority would be (1) Make it work (2) Make it right (3) Make it fast, respectively.
 
-Making it work means:
-- the structure of the ouput is as instructed, assuming it was from software engineer team.
-- all the dependencies are well managed - here we use `requirements.txt` and `Dockerfile`
-- the script has been successfully deployed and internal user can see the results
+*MILESTONE 1: Make it work*
+
+- The structure of the ouput is as instructed, assuming it was from software engineer team.
+- All the dependencies are managed, make the experiment repeatable - here we use `requirements.txt` and `Dockerfile` 
+
+*MILESTONE 2: Make it right*
+- Thousands of resume are collected and labeled
+- Accuracy metric is defined and measured against labeled resume
+- Set goal to increase accuracy metric over time
+- Unit test & CI/CD are developed
+
+*MILESTONE 3: Make it fast*
+- P95 do not go beyond 4 seconds given a higher target accuracy.
+- Handle thousands of requests per second
+
+*MILESTONE 4: Make it again*
+- Extend to new languages
+
 
 Ability to handle load and response quickly will be based on 
 (1) Lean code (2) System design. The code for this first version is far from being lean and optimal, however we can discuss system design and how to scale this service with tools such as Kubernetes.
+
+Currently the respose is below 4 seconds; however, the accuracy is still very low.
+
 
 ## About accuracy
 To quantify accuracy metric, I suggest we use a custom metric as follows:
@@ -79,13 +111,35 @@ accuracy = weights * LevensteinRatio(predictions, labels)
 ```
 where weights, predictions, and labels are all arrays. LevensteinDistance function quantify an edit distance between prediction and label, for example between extracted name "Lennon" and actual name "John Lennon". This takes 5 alphabets to edit, so that two words are equal. Therefore the Levenstein Raio of this prediction would be 5/8.5 or 58.8%, where 8.5 is an average of length of word of "Lennon" and "John Lennon". If we think the name is very important to overall score, then we can put a high weight.
 
-Then we apply this same concept for other predictions as well, such company names, and so on. However, this scoring method only applies to the content that we all can agree on facts, such as name, university name, company name. Other gray area such as skills, we can other approach, such as `percent_coverage`.
+Then we apply this same concept for other predictions as well, such company names, and so on.
+
+Here is my personal opinion on the priority. This would be reflected in the weights.
+```
+* higher weight
+|
+
+identifiers e.g. email, full_name, phone (who)
+
+experience & skills (what candidate can do)
+
+education 
+
+certificate
+
+...
+
+|
+* lower weight
+```
+
+However, this scoring method only applies to the content that we all can agree on facts, such as name, university name, company name. Other gray area such as skills, we can other approach, such as `percent_coverage`.
 ```
 percentage_coverage = len([skill for skill in predicted_skill if skill in labeled_skills])
 ```
-However, this also requires labeled data.
 
 The final accuracy can be a function of multiple metric, for example weighted average. Measuring accuracy helps us improve over time.
+
+With this accuracy function, the accuracy score between normalized to between 0-1.
 
 ## Information Extraction Strategies
 In order to achieve the goal, which is to create API that response within 4 seconds, we need to avoid excessively sophisicated method that yield a little better result but consumes a lot more computational resources.
@@ -103,11 +157,11 @@ then we split full text by each keyword and find the length from the first strin
 ```
 Here we know immediately that "experience section" is between the string index 120 and string index 300. Education section is between string index 300 to 500, and so on.
 
-Refer to the function `detect_sections()` in `information_extraction.py` for an implementation details.
+Refer to the function `detect_sections()` in `resume_parsing.py` for an implementation details.
 
 I also apply this to split between multiple experiences in experience section.
 
-........
+___
 
 **Strategy 2 : <br>
 Use REGEX whenever possible and avoid large NLP models**
@@ -118,7 +172,7 @@ Therefore the first strategy is to do text matching with regex as much as we can
 - REGEX is faster than language model, and more accurate in some cases, but it is rule-based and can overfit.
 - Language model can be more generic, and useful, but doesn't guarantee accuracy, and it is resource intensive.
 
-For example, I use `extract_phone_numbers`, in the file `information_extraction.py`, instead of doing a full LM prediction on each word, to find just one number in a resume.
+For example, I use `extract_phone_numbers`, in the file `resume_parsing.py`, instead of doing a full LM prediction on each word, to find just one number in a resume.
 ```
 def extract_phone_numbers(text):
     """

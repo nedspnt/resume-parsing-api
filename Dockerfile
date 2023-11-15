@@ -9,10 +9,8 @@ RUN python -m spacy download en_core_web_lg
 
 COPY . .
 
-ENV FLASK_APP=main.py
+ENV FLASK_APP=api_service.py
 
-RUN ["python", "download_models.py"]
+RUN ["python", "utils/download_models.py"]
 
 CMD ["flask", "run", "--host", "0.0.0.0"]
-
-# CMD ["python", "./test_company_extractor.py"]

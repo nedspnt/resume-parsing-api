@@ -3,8 +3,8 @@
 import json
 import numpy as np
 from flask import Flask, jsonify, request
-from text_extraction import pdf_file_to_text, pdf_url_to_text
-from information_extraction import get_output_dict
+from utils.text_extraction import pdf_file_to_text, pdf_url_to_text
+from resume_parser import get_output_dict
 import os
 
 app = Flask(__name__)
